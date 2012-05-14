@@ -1,0 +1,117 @@
+/* vim:ft=stringtemplatedollar
+ *
+ * Template rules to generate operator proposal rules based on preconditions
+ * specified in a PDDL domain description file.
+ *
+ */
+group soar;
+
+agent(domainname, productions) ::= <<
+sp {init
+   (state <s> ^superstate nil)
+-->
+   (<s> ^name $domainname$)}
+
+$productions; separator="\n\n"$
+>>
+
+/* Creates conditions testing for the presence of objects on the
+ * input-link that are not equal to each other. This is done by creating a
+ * condition in which the first object is tested against all others, and
+ * recursively calling itself for the rest of the objects
+ *
+ * This is necessary because it seems that variables with different names in
+ * PDDL cannot bind to the same object, and some domains depend on this for
+ * correctness (for example, bw.pddl).
+ */
+unique_ids(ids) ::= <<
+$if(ids)$
+$first(ids):{x|^$x.cdr$ \{ <param-$x.car$>}$ $rest(ids):{x|<> <param-$x.car$>}; separator=" "$ } $unique_ids(ids=rest(ids))$
+$endif$
+>>
+
+action(domain, name, params, body) ::= <<
+sp {$domain$*propose*execute-action*$name$
+   (state <s> ^name $domain$
+              ^io <io>)
+   (<io> ^input-link <in> ^output-link <out>)
+   (<in> ^state <instate> ^num-updates <nu>)
+   $if(params)$
+   (<instate> $unique_ids(ids=params)$)
+   $params:{p|(<param-$p.car$> ^id <param-$p.car$-id>)}; separator="\n"$
+   $endif$
+   $body$
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name $name$
+        ^task-operator t
+        ^pddl-operator t
+        $params:{p|^$p.car$ <param-$p.car$-id>}; separator="\n"$)
+}
+>>
+
+
+// We need a suffix so that we can guarantee variable names to be unique
+atomic_predicate_test(predname, param_vals, suff) ::= <<
+(<instate> ^$predname$ <$predname$-$suff$>)
+$if(param_vals)$
+(<$predname$-$suff$> $param_vals:{pv| ^$pv.car$ <param-$pv.cdr$>}$)
+$endif$
+>>
+
+// ands are easy
+and_test(terms) ::= <<
+$terms; separator="\n"$
+>>
+
+/* Using De Morgan's law to simulate ORs. This might become very inefficient,
+ * in which case I'd have to split the tests into multiple productions. Don't
+ * know how to do that yet.
+ */
+or_test(terms) ::= <<
+-{ # or
+  $terms:{t |
+  -\{ # or term
+    $t$
+  \}}; separator="\n"$
+ } # end or
+>>
+
+not_test(term) ::= <<
+-{ # not
+  $term$
+ } # end not
+>>
+
+/* Thank god for De Morgan */
+imply_test(antecedent, consequent) ::= <<
+-{ # imply
+  $antecedent$
+  -{ # consequent
+    $consequent$
+   } # end consequent
+ } # end imply
+>>
+
+/* The only way in which exists differs from and is that exists introduces more
+ * variables. A problem that I haven't addressed is having to make sure these
+ * variables are local to the scope of the quantifier. It can be solved using
+ * unique suffixes passed in from the tree walker which can maintain a unique
+ * counter for this purpose.
+ */
+exists_test(typed_terms, cond) ::= <<
+# exists
+(<instate> $unique_ids(ids=typed_terms)$)
+$cond$
+# end exists
+>>
+
+/* As usual, use negated exists test */
+forall_test(typed_terms, cond) ::= <<
+-{ # forall
+  (<in> $unique_ids(ids=typed_terms)$)
+ -{
+     $cond$
+  }
+ } # end forall
+>>

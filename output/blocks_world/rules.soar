@@ -1,0 +1,73 @@
+sp {init
+   (state <s> ^superstate nil)
+-->
+   (<s> ^name blocks_world)}
+
+sp {blocks_world*propose*execute-action*MoveToTable
+   (state <s> ^name blocks_world
+              ^io <io>)
+   (<io> ^input-link <in> ^output-link <out>)
+   (<in> ^state <instate> ^num-updates <nu>)
+   (<instate> ^object { <param-omf> <> <param-lower> } ^object { <param-lower>  } )
+   (<param-omf> ^id <param-omf-id>)
+   (<param-lower> ^id <param-lower-id>)
+   (<instate> ^clear <clear-1>)
+   (<clear-1> ^x <param-omf>)
+   (<instate> ^on <on-2>)
+   (<on-2> ^x <param-omf>^y <param-lower>)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name MoveToTable
+        ^task-operator t
+        ^pddl-operator t
+        ^omf <param-omf-id>
+        ^lower <param-lower-id>)
+}
+
+sp {blocks_world*propose*execute-action*MoveToBlock1
+   (state <s> ^name blocks_world
+              ^io <io>)
+   (<io> ^input-link <in> ^output-link <out>)
+   (<in> ^state <instate> ^num-updates <nu>)
+   (<instate> ^object { <param-omf> <> <param-lower> <> <param-dest> } ^object { <param-lower> <> <param-dest> } ^object { <param-dest>  } )
+   (<param-omf> ^id <param-omf-id>)
+   (<param-lower> ^id <param-lower-id>)
+   (<param-dest> ^id <param-dest-id>)
+   (<instate> ^clear <clear-1>)
+   (<clear-1> ^x <param-omf>)
+   (<instate> ^clear <clear-2>)
+   (<clear-2> ^x <param-dest>)
+   (<instate> ^on <on-3>)
+   (<on-3> ^x <param-omf>^y <param-lower>)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name MoveToBlock1
+        ^task-operator t
+        ^pddl-operator t
+        ^omf <param-omf-id>
+        ^lower <param-lower-id>
+        ^dest <param-dest-id>)
+}
+
+sp {blocks_world*propose*execute-action*MoveToBlock2
+   (state <s> ^name blocks_world
+              ^io <io>)
+   (<io> ^input-link <in> ^output-link <out>)
+   (<in> ^state <instate> ^num-updates <nu>)
+   (<instate> ^object { <param-omf> <> <param-dest> } ^object { <param-dest>  } )
+   (<param-omf> ^id <param-omf-id>)
+   (<param-dest> ^id <param-dest-id>)
+   (<instate> ^clear <clear-1>)
+   (<clear-1> ^x <param-omf>)
+   (<instate> ^clear <clear-2>)
+   (<clear-2> ^x <param-dest>)
+   (<instate> ^on__table <on__table-3>)
+   (<on__table-3> ^x <param-omf>)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name MoveToBlock2
+        ^task-operator t
+        ^pddl-operator t
+        ^omf <param-omf-id>
+        ^dest <param-dest-id>)
+}

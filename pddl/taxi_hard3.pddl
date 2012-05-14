@@ -1,0 +1,50 @@
+(define (problem taxi_hard3)
+   (:domain taxi_hard)
+   (:objects
+         taxi001 - taxi
+         new_street old_street high_street low_street water_bridge slope_street river_road river_close boat_rent main_road short_street - location
+         bill james peter jill ayumi - person
+         full threequarter half_full onequarter empty - fuel
+        )
+    (:init
+        (outsidetaxi bill)
+        (plocation bill high_street)
+        (outsidetaxi ayumi)
+        (plocation ayumi boat_rent)
+        (outsidetaxi james)
+        (plocation james short_street)
+        (outsidetaxi peter)
+        (plocation peter old_street)
+        (outsidetaxi jill)
+        (plocation jill low_street)
+        (tlocation taxi001 low_street)
+        (tfuel taxi001 threequarter)
+	(connects water_bridge short_street)
+	(connects short_street main_road)
+	(connects main_road river_close)
+	(connects main_road river_road)
+	(connects river_close boat_rent)
+	(connects river_road water_bridge)
+	(connects water_bridge old_street)
+	(connects old_street water_bridge)
+	(connects old_street low_street)
+	(connects old_street slope_street)
+	(connects slope_street new_street)
+	(connects low_street new_street)
+	(connects new_street high_street)
+	(connects high_street old_street)
+        (usefuel full threequarter)
+        (usefuel threequarter half_full)
+        (usefuel half_full onequarter)
+        (usefuel onequarter empty)
+        (fillupfuel empty full)
+        )
+    (:goal
+      (and
+        (outsidetaxi jill)
+        (plocation jill slope_street)
+        (outsidetaxi peter)
+        (plocation peter water_bridge)
+       ))
+)
+

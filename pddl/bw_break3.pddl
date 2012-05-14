@@ -1,0 +1,12 @@
+(define (problem bw_break3)
+  (:domain bw_break)
+  (:objects A B C D E)
+  (:init 
+     (on-table A) (clear A)
+	 (on-table B) (clear B)
+	 (on-table C) (clear C)
+	 (on-table D) (clear D)
+	 (on-table E) (clear E)
+	 )
+  (:goal (and (on A B) (on B C) (on C D)))
+)

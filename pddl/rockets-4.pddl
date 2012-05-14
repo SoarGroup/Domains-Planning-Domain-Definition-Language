@@ -1,0 +1,15 @@
+(define (problem rrt4)
+  (:domain rockets)
+  (:objects venus earth mars moon x1 x2 x3 x4
+	    anna beth carol diane emma)
+  (:init
+   (location venus) (location earth) (location mars) (location moon)
+   (rocket x1) (rocket x2) (rocket x3) (rocket x4) (cargo anna)
+   (cargo beth) (cargo carol) (cargo diane) (cargo emma)
+   (at x1 venus) (at x2 earth) (at x3 mars) (at x4 moon)
+   (at anna venus) (at beth venus) (at carol earth)
+   (at diane mars) (at emma moon)
+   (fuel x1) (fuel x2) (fuel x3) (fuel x4))
+  (:goal (and (at anna earth) (at carol mars) (at beth moon)
+	      (at diane moon) (at emma earth)))
+  )

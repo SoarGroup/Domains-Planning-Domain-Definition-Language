@@ -1,0 +1,33 @@
+# This file contains some rules that all agents auto-generated from PDDL domain
+# descriptions need to function.
+
+sp {apply*action
+   (state <s> ^operator <o>
+              ^io.output-link <out>)
+   (<o> ^name <op-name>
+        ^pddl-operator t)
+-->
+   (<out> ^<op-name> <cmd>)
+   (<cmd> ^__op__ <o>)}
+
+# I can't elaborate this at the same time as I create the command on the output
+# link, because that would mix operator elaboration with application, and the
+# command structure will be i-supported then.
+sp {elaborate*external-action
+   (state <s> ^operator <o> +
+              ^io.output-link.<cmd-name> <cmd>)
+   (<o> ^pddl-operator t
+        ^name <cmd-name>)
+   (<cmd> ^__op__ <o>)
+-->
+   (<o> ^external-action <cmd>)}
+
+sp {apply*action*parameter
+   (state <s> ^io.input-link.state <instate> ^operator <o>)
+   (<instate> ^<obj-type> <obj>)
+   (<obj> ^id <obj-id>)
+   (<o> ^pddl-operator t
+        ^external-action <cmd>
+        ^{<param-name> <> external-action} <obj-id>)
+-->
+   (<cmd> ^<param-name> <obj>)}

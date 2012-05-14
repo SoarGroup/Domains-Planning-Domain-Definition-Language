@@ -1,0 +1,170 @@
+group pddl_python_sml;
+
+/* A domain definition in PDDL translates into a subclass of PddlBaseEnv. The
+ * subclass defines all predicate types and adds methods for handling domain
+ * actions appropriately.
+ */
+domain(name, predicate_names, predicatedefs, actiondefs) ::= <<
+import itertools
+from PddlState import PddlState, iterator_is_empty
+from PddlStateSmlAdapter import PddlStateSmlAdapter
+
+class <name>:
+    def __init__(self, agent):
+        if agent:
+            self.state = PddlStateSmlAdapter(self, agent)
+        else:
+            self.state = PddlState()
+
+        <predicate_names:{p|self.state.predicates['<p>'] = set()}; separator="\n">
+        self.pred_param_names = {}
+        <predicatedefs>
+
+    <actiondefs; separator="\n\n">
+>>
+
+/* For each predicate defined, make a method that can easily add it. The method
+ * will take as many arguments as the predicate has parameters and in the same
+ * order, and assign them correctly to the predicate identifier's attributes.
+ * This makes it unnecessary to explicitly store predicate parameter names. 
+ */
+predicate_def(name, params) ::= <<
+<if(params)>
+self.pred_param_names['<name>'] = (<params:{p|'<p.car>'}; separator=",">,)
+<else>
+self.pred_param_names['<name>'] = ()
+<endif>
+>>
+
+/* Method to handle a specific command type on the output-link. the update
+ * method in PddlBaseEnv dispatches commands to these methods.
+ */
+action(name, params, body) ::= <<
+def do_action_<name>(self, args):
+    <action_parse_params(params)>
+    <body>
+>>
+
+/* Checks that all required parameters are present, and gets the identifier
+ * pointers associated with them.
+ */
+action_parse_params(params) ::= <<
+<if(params)>
+try:
+    <params:{ p | _<p.car> = args['<p.car>']}; separator="\n">
+except KeyError:
+    return 'Command missing parameters'
+<endif>
+>>
+
+action_body(preconds, effects) ::= <<
+<if(preconds)>
+if not (<preconds>):
+    return 'Preconditions not satisfied'
+<endif>
+
+predicate_adds = []
+predicate_dels = []
+<effects>
+return (predicate_adds, predicate_dels)
+>>
+
+and_gd(terms) ::= <<
+(<terms; separator=" and ">)
+>>
+or_gd(terms) ::= <<
+(<terms; separator=" or ">)
+>>
+not_gd(term) ::= <<
+(not <term>)
+>>
+imply_gd(ant, cons) ::= <<
+((not <ant>) or <cons>)
+>>
+
+/* Constructs an iterator over all possible combinations of typed objects.
+ * Needed for quantifier tests and effects
+ */
+object_combs(typed_terms) ::= <<
+itertools.product(<typed_terms:{t|(x for x in self.state.types if self.state.types[x]=='<t.cdr>')};separator=",">)
+>>
+
+/* That trailing comma before the "in" is needed so that if there's only one
+ * variable, the tuple from the product generator will still be unpacked, rather than
+ * assigning the tuple directly to the variable.
+ */
+exists_gd(typed_terms,cond) ::= <<
+(not iterator_is_empty((None for <typed_terms:{t|_<t.car>};separator=",">, in <object_combs(typed_terms)> if <cond>)))
+>>
+
+forall_gd(typed_term,cond) ::= <<
+iterator_is_empty((None for <typed_terms:{t|_<t.car>};separator=",">, in <object_combs(typed_terms)> if (not <cond>)))
+>>
+
+atomic_predicate_test(predname, terms) ::= <<
+<if(terms)>
+((<terms:{t|_<t>}; separator=",">,) in self.state.predicates['<predname>'])
+<else>
+(() in self.state.predicates['<predname>'])
+<endif>
+>>
+
+equality(t1, t2) ::= <<
+(_<t1> == _<t2>)
+>>
+
+add_predicate_effect(predname, terms) ::= <<
+predicate_adds.append(('<predname>', <terms:{t|_<t>};separator=",">))
+>>
+
+remove_predicate_effect(predname, terms) ::= <<
+predicate_dels.append(('<predname>', <terms:{t|_<t>};separator=",">))
+>>
+
+and_effect(effects) ::= <<
+<effects; separator="\n">
+>>
+
+forall_effect(typed_terms, effect) ::= <<
+for <typed_terms:{t|_<t.car>}; separator=",">, in <object_combs(typed_terms)>:
+    <effect>
+>>
+
+when_effect(cond, effect) ::= <<
+if <cond>:
+    <effect>
+>>
+
+/* A problem instance defined in PDDL translates into a subclass of the class
+ * defined by the domain. The only thing this subclass adds is an implemented
+ * init method, which initializes the class instance to the state defined by
+ * the problem.
+ */
+problem(name, domain, init_func) ::= <<
+from <domain> import <domain>
+
+class <name>(<domain>):
+
+    domain = '<domain>'
+
+    def __init__(self, agent = None):
+        <domain>.__init__(self, agent)
+        self.init()
+
+    <init_func>
+
+problem = <name>
+>>
+
+init(objects, init_preds) ::= <<
+def init(self):
+    <objects:{o|self.state.add_object('<o.car>', '<o.cdr>')}; separator="\n">
+    <init_preds; separator="\n">
+
+    self.state.init_state = self.state.get_static()
+    self.state.update_input_stats()
+>>
+
+init_predicate(name, terms) ::= <<
+self.state.add_predicate('<name>', <terms:{t|'<t>'}; separator=",">)
+>>

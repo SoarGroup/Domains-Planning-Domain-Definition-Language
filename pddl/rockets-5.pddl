@@ -1,0 +1,17 @@
+(define (problem rrt5)
+  (:domain rockets)
+  (:requirements :strips)
+  (:objects venus earth mars moon saturn x1 x2 x3 x4 x5
+	    anna beth carol diane emma fiona)
+  (:init
+   (location venus) (location earth) (location mars) (location moon)
+   (location saturn) (rocket x1) (rocket x2) (rocket x3) (rocket x4)
+   (rocket x5) (cargo anna) (cargo beth) (cargo carol) (cargo diane)
+   (cargo emma) (cargo fiona)
+   (at x1 venus) (at x2 earth) (at x3 mars) (at x4 moon) (at x5 saturn)
+   (at anna venus) (at beth venus) (at carol earth) (at diane mars)
+   (at emma moon) (at fiona saturn)
+   (fuel x1) (fuel x2) (fuel x3) (fuel x4) (fuel x5))
+  (:goal (and (at anna earth) (at beth saturn) (at carol mars)
+	      (at diane moon) (at emma saturn) (at fiona earth)))
+  )

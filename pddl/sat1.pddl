@@ -1,0 +1,13 @@
+
+(define (problem sat_1)
+  (:domain sat)
+  (:objects p1 p2 p3 not_p1 not_p2 not_p3)
+  (:init (is_neg p1 not_p1) (is_neg not_p1 p1)
+	 (is_neg p2 not_p2) (is_neg not_p2 p2)
+	 (is_neg p3 not_p3) (is_neg not_p3 p3)
+	 (is_clear p1) (is_clear not_p1)
+	 (is_clear p2) (is_clear not_p2)
+	 (is_clear p3) (is_clear not_p3))
+  (:goal (and (sat_clause p1 not_p2 p3) (sat_clause p1 p2 not_p3)
+	      (sat_clause not_p1 p2 p3)))
+  )
